@@ -135,8 +135,44 @@ class MinimaxAgent(MultiAgentSearchAgent):
         gameState.isLose():
         Returns whether or not the game state is a losing state
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def minimax(state, depth):
+            if (state.isWin() or state.isLose()) or depth == 0:
+                return None
+
+            legalActions = state.getLegalActions(0)
+            score = float('-inf')
+            action = None
+            for currentAction in legalActions:
+                nextState = state.generateSuccessor(0, currentAction)
+                currentScore = recursiveMinimax(nextState, depth, 1)
+                if currentScore > score:
+                    score = currentScore
+                    action = currentAction
+            return action
+
+        def recursiveMinimax(state, depth, agent):
+            if (state.isWin() or state.isLose()) or depth == 0:
+                return self.evaluationFunction(state)
+
+            legalActions = state.getLegalActions(agent)
+            nextAgent = (agent + 1) % state.getNumAgents()
+
+            if agent == 0:
+                score = float('-inf')
+                for currentAction in legalActions:
+                    nextState = state.generateSuccessor(agent, currentAction)
+                    score = max(score, recursiveMinimax(nextState, depth, nextAgent))
+            else:
+                score = float('inf')
+                for currentAction in legalActions:
+                    nextState = state.generateSuccessor(agent, currentAction)
+                    if nextAgent == 0:
+                        score = min(score, recursiveMinimax(nextState, depth - 1, nextAgent))
+                    else:
+                        score = min(score, recursiveMinimax(nextState, depth, nextAgent))
+            return score
+
+        return minimax(gameState, self.depth)
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -147,8 +183,57 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def alphaBeta(state, depth):
+            if (state.isWin() or state.isLose()) or depth == 0:
+                return None
+
+            alpha = float('-inf')
+            beta = float('inf')
+            legalActions = state.getLegalActions(0)
+
+            score = float('-inf')
+            action = None
+            for currentAction in legalActions:
+                nextState = state.generateSuccessor(0, currentAction)
+                currentScore = recursiveAlphaBeta(nextState, depth, 1, alpha, beta)
+                if currentScore > score:
+                    score = currentScore
+                    action = currentAction
+                if score > beta:
+                    break
+                alpha = max(alpha, score)
+            return action
+
+        def recursiveAlphaBeta(state, depth, agent, alpha, beta):
+            if (state.isWin() or state.isLose()) or depth == 0:
+                return self.evaluationFunction(state)
+
+            legalActions = state.getLegalActions(agent)
+            nextAgent = (agent + 1) % state.getNumAgents()
+
+            if agent == 0:
+                score = float('-inf')
+                for currentAction in legalActions:
+                    nextState = state.generateSuccessor(0, currentAction)
+                    score = max(score, recursiveAlphaBeta(nextState, depth, nextAgent, alpha, beta))
+                    if score > beta:
+                        break
+                    alpha = max(alpha, score)
+            else:
+                score = float('inf')
+                for currentAction in legalActions:
+                    nextState = state.generateSuccessor(agent, currentAction)
+                    if nextAgent == 0:
+                        score = min(score, recursiveAlphaBeta(nextState, depth - 1, nextAgent, alpha, beta))
+                    else:
+                        score = min(score, recursiveAlphaBeta(nextState, depth, nextAgent, alpha, beta))
+                    if score < alpha:
+                        break
+                    beta = min(beta, score)
+            return score
+
+        return alphaBeta(gameState, self.depth)
+
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
