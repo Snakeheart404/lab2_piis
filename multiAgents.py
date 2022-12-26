@@ -247,8 +247,48 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         All ghosts should be modeled as choosing uniformly at random from their
         legal moves.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        def expectimax(state, depth):
+            if (state.isWin() or state.isLose()) or depth == 0:
+                return None
+
+            legalActions = state.getLegalActions(0)
+
+            action = None
+            score = float('-inf')
+            for currentAction in legalActions:
+                nextState = state.generateSuccessor(0, currentAction)
+                currentScore = recursiveExpectimax(nextState, depth, 1)
+                if currentScore > score:
+                    score = currentScore
+                    action = currentAction
+            return action
+
+        def recursiveExpectimax(state, depth, agent):
+            if (state.isWin() or state.isLose()) or depth == 0:
+                return self.evaluationFunction(state)
+
+            legalActions = state.getLegalActions(agent)
+            nextAgent = (agent + 1) % state.getNumAgents()
+
+            score = 0
+            if agent == 0:
+                score = float('-inf')
+                for currentAction in legalActions:
+                    nextState = state.generateSuccessor(agent, currentAction)
+                    score = max(score, recursiveExpectimax(nextState, depth, nextAgent))
+            else:
+                for currentAction in legalActions:
+                    nextState = state.generateSuccessor(agent, currentAction)
+                    if nextAgent == 0:
+                        score += recursiveExpectimax(nextState, depth - 1, nextAgent)
+                    else:
+                        score += recursiveExpectimax(nextState, depth, nextAgent)
+                score /= len(legalActions)
+            return score
+
+        return expectimax(gameState, self.depth)
+
 
 def betterEvaluationFunction(currentGameState: GameState):
     """
@@ -258,8 +298,8 @@ def betterEvaluationFunction(currentGameState: GameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     # Coefficients
-    coefficientScore = 5
-    coefficientFoodLeft = 5
+    coefficientScore = 6
+    coefficientFoodLeft = 6
     coefficientNearestFood = 2
     coefficientNearestGhost = 2
 
